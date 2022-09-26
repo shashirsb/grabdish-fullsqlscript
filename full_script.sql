@@ -154,41 +154,43 @@ GRANT SELECT ON DBA_QUEUE_SCHEDULES TO "INVENTORYUSER"
 ----------------------------------
 --  queues_create_classic.sql   --
 ----------------------------------
+alter session set current_schema=AQ;
+--conn AQ/"MyDB@12345678"
 
 -- liquibase formatted sql
 
 -- changeset gotsysdba:1 labels:classic context:1db endDelimiter:/ rollbackEndDelimiter:/
 BEGIN
   DBMS_AQADM.CREATE_QUEUE_TABLE (
-    QUEUE_TABLE        => 'ORDERQUEUETABLE',
+    QUEUE_TABLE        => 'AQ.ORDERQUEUETABLE',
     QUEUE_PAYLOAD_TYPE => 'SYS.AQ$_JMS_TEXT_MESSAGE',
     MULTIPLE_CONSUMERS => true,
     COMPATIBLE         => '8.1'
   );
 
   DBMS_AQADM.CREATE_QUEUE_TABLE (
-    QUEUE_TABLE        => 'INVENTORYQUEUETABLE',
+    QUEUE_TABLE        => 'AQ.INVENTORYQUEUETABLE',
     QUEUE_PAYLOAD_TYPE => 'SYS.AQ$_JMS_TEXT_MESSAGE',
     MULTIPLE_CONSUMERS => true,
     COMPATIBLE         => '8.1'
   );
 
   DBMS_AQADM.CREATE_QUEUE (
-    QUEUE_NAME         => 'ORDERQUEUE',
-    QUEUE_TABLE        => 'ORDERQUEUETABLE'
+    QUEUE_NAME         => 'AQ.ORDERQUEUE',
+    QUEUE_TABLE        => 'AQ.ORDERQUEUETABLE'
   );
 
   DBMS_AQADM.CREATE_QUEUE (
-    QUEUE_NAME         => 'INVENTORYQUEUE',
-    QUEUE_TABLE        => 'INVENTORYQUEUETABLE'
+    QUEUE_NAME         => 'AQ.INVENTORYQUEUE',
+    QUEUE_TABLE        => 'AQ.INVENTORYQUEUETABLE'
   );
 
   DBMS_AQADM.START_QUEUE (
-    QUEUE_NAME         => 'ORDERQUEUE'
+    QUEUE_NAME         => 'AQ.ORDERQUEUE'
   );
 
   DBMS_AQADM.START_QUEUE (
-    QUEUE_NAME         => 'INVENTORYQUEUE'
+    QUEUE_NAME         => 'AQ.INVENTORYQUEUE'
   );
 END;
 /
@@ -228,39 +230,39 @@ END;
 BEGIN
   DBMS_AQADM.grant_queue_privilege (
     privilege    => 'ENQUEUE',
-    queue_name   => 'ORDERQUEUE',
+    queue_name   => 'AQ.ORDERQUEUE',
     grantee      => 'ORDERUSER',
     grant_option =>  FALSE
   );
 
   DBMS_AQADM.grant_queue_privilege (
     privilege    => 'DEQUEUE',
-    queue_name   => 'INVENTORYQUEUE',
+    queue_name   => 'AQ.INVENTORYQUEUE',
     grantee      => 'ORDERUSER',
     grant_option => FALSE
   );
 
   DBMS_AQADM.grant_queue_privilege (
     privilege    => 'ENQUEUE',
-    queue_name   => 'INVENTORYQUEUE',
+    queue_name   => 'AQ.INVENTORYQUEUE',
     grantee      => 'INVENTORYUSER',
     grant_option =>  FALSE
   );
 
   DBMS_AQADM.grant_queue_privilege (
     privilege    => 'DEQUEUE',
-    queue_name   => 'ORDERQUEUE',
+    queue_name   => 'AQ.ORDERQUEUE',
     grantee      => 'INVENTORYUSER',
     grant_option =>  FALSE
   );
 
   DBMS_AQADM.add_subscriber(
-    queue_name   => 'ORDERQUEUE',
+    queue_name   => 'AQ.ORDERQUEUE',
     subscriber   => sys.aq$_agent('inventory_service',NULL,NULL)
   );
 
   DBMS_AQADM.add_subscriber(
-    queue_name   => 'INVENTORYQUEUE',
+    queue_name   => 'AQ.INVENTORYQUEUE',
     subscriber   => sys.aq$_agent('order_service',NULL,NULL)
   );
 END;
@@ -273,7 +275,8 @@ END;
 ----------------------------------
 --  objects_inventory.sql       --
 ----------------------------------
-
+alter session set current_schema=INVENTORYUSER;
+--conn INVENTORYUSER/"MyDB@12345678"
 
 
 -- liquibase formatted sql
@@ -505,7 +508,8 @@ END;
 ----------------------------------
 --  objects_order.sql           --
 ----------------------------------
-
+alter session set current_schema=ORDERUERS;
+--conn ORDERUSER/"MyDB@12345678"
 
 
 -- liquibase formatted sql
